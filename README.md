@@ -1,208 +1,251 @@
-Week 10 Quiz: Seasonal Revenue Regression Analysis
+# Revenue Forecasting with Seasonal Regression
 
-Project Overview
+## Project Overview
 
-This project analyzes whether the relationship between production and revenue changes across seasons. Two multiple linear regression models are created and compared:
+This project analyzes the relationship between production activity and company revenue using multiple linear regression.
 
-Winter model – tests whether winter affects the intercept and slope of the revenue relationship.
+The objective was to determine whether seasonal factors improve the accuracy of revenue forecasts. I created seasonal dummy variables and interaction terms to compare how revenue responds to production during different times of the year.
 
-Fall model – tests whether fall affects the intercept and slope of the revenue relationship.
+This project demonstrates how accounting and finance professionals can use data analytics to:
 
-The models are trained using the observations labelled dt4training and evaluated using the observations labelled dt4testing.
+* Forecast financial performance
+* Identify seasonal revenue patterns
+* Evaluate competing forecasting models
+* Support budgeting and planning decisions
+* Translate statistical results into business insights
 
-Research Question
+## Business Question
 
-Does seasonality improve the ability to predict revenue from production, and does the effect of production on revenue differ during winter or fall?
+**Can seasonal information improve revenue forecasts based on production levels?**
 
-Dataset
+To answer this question, I compared two regression models:
 
-The notebook uses the following file:
+1. A winter-based revenue model
+2. A fall-based revenue model
 
-AICPA_regressionAnalysisData.csv
+The models were trained using historical data and evaluated using a separate testing dataset.
 
-The dataset includes these main variables:
+## Dataset
 
-Variable
+The dataset contains monthly company information, including:
 
-Description
+* `date` — month of the observation
+* `revenue` — monthly company revenue
+* `production` — monthly production level
+* `coolDD` — cooling degree days
+* `heatDD` — heating degree days
+* `type` — identifies training and testing observations
 
-date
+The data was divided into:
 
-Date of the observation
+* **Training data:** used to estimate the regression models
+* **Testing data:** used to evaluate forecasting accuracy
 
-production
+## Data Preparation
 
-Level of production
+The date variable was converted into a Python datetime format so that each observation could be classified by season.
 
-revenue
+Two seasonal dummy variables were created.
 
-Revenue earned
+### Winter Dummy Variable
 
-type
+The winter dummy equals:
 
-Identifies training and testing observations
+* `1` for December, January, and February
+* `0` for all other months
 
-The type column separates the data into:
+### Fall Dummy Variable
 
-dt4training – used to estimate the regression models
+The fall dummy equals:
 
-dt4testing – used to evaluate model predictions
+* `1` for September, October, and November
+* `0` for all other months
 
-Seasonal Variables
+Interaction terms were also created to determine whether the relationship between production and revenue changes during each season.
 
-Winter Dummy Variable
+```python
+winter_interaction = production × winter_DV
+fall_interaction = production × fall_DV
+```
 
-The winter dummy variable equals 1 when the observation occurs in:
+## Regression Models
 
-December
+### Model 1: Winter Model
 
-January
+The winter model estimates revenue using:
 
-February
+* Production
+* Winter dummy variable
+* Winter-production interaction term
 
-It equals 0 during all other months.
+```text
+Revenue = β₀ + β₁(Production) + β₂(Winter) 
+          + β₃(Production × Winter) + ε
+```
 
-HS_data['winter_DV'] = np.where(
-    HS_data['date'].dt.month.isin([12, 1, 2]), 1, 0
-)
+This model allows both the expected revenue level and the relationship between production and revenue to change during winter.
 
-Fall Dummy Variable
+### Model 2: Fall Model
 
-The fall dummy variable equals 1 when the observation occurs in:
+The fall model estimates revenue using:
 
-September
+* Production
+* Fall dummy variable
+* Fall-production interaction term
 
-October
+```text
+Revenue = β₀ + β₁(Production) + β₂(Fall)
+          + β₃(Production × Fall) + ε
+```
 
-November
+This model tests whether fall months have a different revenue pattern than the rest of the year.
 
-It equals 0 during all other months.
+## Model Evaluation
 
-HS_data['fall_DV'] = np.where(
-    HS_data['date'].dt.month.isin([9, 10, 11]), 1, 0
-)
+The models were evaluated using:
 
-Interaction Terms
+* Mean Absolute Percentage Error
+* Root Mean Squared Error
+* Actual versus predicted revenue
+* Regression visualizations
 
-Interaction terms are included to test whether the effect of production on revenue changes during a particular season.
+### Test-Data Results
 
-Winter Interaction = Production × Winter Dummy
-Fall Interaction = Production × Fall Dummy
+| Model        |   MAPE |          RMSE |
+| ------------ | -----: | ------------: |
+| Winter Model | 15.90% | $2,285,842.41 |
+| Fall Model   | 22.02% | $3,800,342.61 |
 
-A significant interaction term would suggest that the slope relating production to revenue is different during that season.
+A production-only regression model produced a MAPE of approximately **25.42%**.
 
-Regression Models
+## Key Findings
 
-Model 1: Winter Model
+* The winter model produced the lowest forecasting error.
+* Adding seasonal information improved the forecast compared with using production alone.
+* The winter model reduced MAPE from approximately 25.42% to 15.90%.
+* Revenue appears to respond differently to production during winter months.
+* The fall model performed worse than the winter model on the testing data.
+* A model with a stronger training fit does not always produce more accurate out-of-sample forecasts.
+* Testing a model on unseen data is important before using it for financial decisions.
 
-Revenue = β0 + β1(Production) + β2(Winter) + β3(Production × Winter) + ε
+## Business Interpretation
 
-Interpretation:
+The results suggest that production alone does not fully explain changes in revenue.
 
-β0 represents the estimated intercept outside winter.
+Winter conditions may influence:
 
-β1 represents the effect of production on revenue outside winter.
+* Customer demand
+* Product pricing
+* Operating activity
+* Production efficiency
+* Energy consumption
+* Revenue generated per unit of production
 
-β2 represents the change in the intercept during winter.
+For budgeting and financial planning, management should consider including seasonal variables rather than relying only on production volume.
 
-β3 represents the change in the production slope during winter.
+The winter model provided the strongest forecast among the models tested and may offer a better starting point for estimating future monthly revenue.
 
-Model 2: Fall Model
+## Visualizations
 
-Revenue = β0 + β1(Production) + β2(Fall) + β3(Production × Fall) + ε
+The notebook includes visualizations comparing:
 
-Interpretation:
+* Revenue and production
+* Winter and non-winter regression lines
+* Fall and non-fall regression lines
+* Actual and predicted test-set revenue
+* MAPE across the two seasonal models
 
-β0 represents the estimated intercept outside fall.
+These visualizations help communicate the regression results to users who may not have a technical background.
 
-β1 represents the effect of production on revenue outside fall.
+## Tools and Technologies
 
-β2 represents the change in the intercept during fall.
+* Python
+* Jupyter Notebook
+* Pandas
+* NumPy
+* Matplotlib
+* Statsmodels
+* Ordinary Least Squares regression
 
-β3 represents the change in the production slope during fall.
+## Skills Demonstrated
 
-Model Evaluation
+### Accounting and Finance
 
-The models are evaluated on the testing data using the following measures:
+* Revenue forecasting
+* Financial data interpretation
+* Budgeting and planning analysis
+* Seasonal performance analysis
+* Business-focused model evaluation
 
-Mean Absolute Percentage Error (MAPE)
+### Data Analytics
 
-MAPE measures the average prediction error as a percentage of actual revenue.
+* Data cleaning and preparation
+* Training and testing data separation
+* Dummy-variable creation
+* Interaction-term analysis
+* Multiple linear regression
+* Predictive-model comparison
+* MAPE and RMSE calculation
+* Data visualization
 
-A lower MAPE indicates more accurate predictions.
+## Repository Structure
 
-It is useful for comparing prediction accuracy across models.
+```text
+Revenue-Forecasting-Project/
+│
+├── Week_10quiz.ipynb
+├── AICPA_regressionAnalysisData.csv
+└── README.md
+```
 
-Root Mean Squared Error (RMSE)
+## How to Run the Project
 
-RMSE measures the typical size of the model's prediction errors in revenue units.
+1. Clone or download this repository.
+2. Ensure that the notebook and CSV dataset are saved in the same folder.
+3. Open the notebook using Jupyter Notebook, JupyterLab, or Google Colab.
+4. Install the required Python libraries.
+5. Run each notebook cell in order.
 
-A lower RMSE indicates better predictive performance.
+### Required Libraries
 
-Larger errors receive more weight because the errors are squared.
-
-R-Squared
-
-R-squared measures the proportion of variation in revenue explained by the model using the training data.
-
-A value closer to 1 means the model explains more of the variation in revenue.
-
-R-squared should be considered together with out-of-sample measures such as MAPE and RMSE.
-
-Visualizations
-
-The notebook creates the following visualizations:
-
-Revenue versus production with separate winter and non-winter regression lines
-
-Revenue versus production with separate fall and non-fall regression lines
-
-Actual versus predicted revenue for both models on the testing data
-
-Bar chart comparing the MAPE of the winter and fall models
-
-These graphs help show whether the seasonal models produce meaningfully different regression relationships and predictions.
-
-Technologies Used
-
-Python
-
-Jupyter Notebook or Google Colab
-
-NumPy
-
-pandas
-
-Matplotlib
-
-statsmodels
-
-Installation
-
-Install the required Python packages with:
-
+```bash
 pip install numpy pandas matplotlib statsmodels
+```
 
-Google Colab normally includes these packages by default.
+## Limitations
 
-How to Run the Project
+* The dataset contains a limited number of observations.
+* The models focus mainly on production and seasonal effects.
+* Other factors may also affect revenue, including pricing, customer demand, inflation, competition, and economic conditions.
+* Seasonal categories simplify differences that may occur between individual months.
+* Forecasting accuracy should be tested using additional periods before the model is used for major business decisions.
 
-Download or open Week_10quiz.ipynb.
+## Future Improvements
 
-Place AICPA_regressionAnalysisData.csv in the same folder as the notebook.
+Future versions of this project could:
 
-Open the notebook in Jupyter Notebook or Google Colab.
+* Include cooling and heating degree days as predictors
+* Add monthly dummy variables
+* Examine economic and pricing information
+* Test additional interaction terms
+* Compare regression with time-series forecasting methods
+* Conduct residual and regression-assumption testing
+* Use a larger dataset
+* Create an interactive financial dashboard
 
-Run the cells in order from top to bottom.
+## About Me
 
-Review the model coefficients, prediction table, evaluation measures, and graphs.
+I am an Accounting and Financial Management student interested in combining financial knowledge with data analytics.
 
-Files
+My areas of interest include:
 
-Week_10quiz.ipynb
-AICPA_regressionAnalysisData.csv
-README.md
+* Financial analysis
+* Accounting
+* Corporate finance
+* Forecasting
+* Business intelligence
+* Data visualization
+* Technology-supported decision-making
 
-Conclusion
+This project reflects my ability to apply Python and statistical modelling to practical accounting and finance questions.
 
-The purpose of the analysis is to determine whether including winter or fall seasonality improves revenue predictions. The preferred model is the one that produces the lower testing MAPE and RMSE while also providing a reasonable explanation of how seasonality changes the relationship between production and revenue.
